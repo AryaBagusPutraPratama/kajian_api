@@ -24,6 +24,7 @@ class AuthController extends Controller
             'first_name' => $attrs['first_name'],
             'last_name' => $attrs['last_name'],
             'email' => $attrs['email'],
+            'role' => 2,
             'password' => bcrypt($attrs['password'])
         ]);
 
@@ -74,6 +75,22 @@ class AuthController extends Controller
         ], 200);
     }
 
+    public function totalUser()
+    {
+        $totalUser = User::where('role', 2)->count();
+
+        return response([
+            'user' => $totalUser
+        ], 200);
+    }
+
+    public function getRole()
+    {
+        return response([
+            'role' => auth()->user()->role,
+        ], 200);
+    }
+
     // update user
     public function update(Request $request)
     {
@@ -90,6 +107,22 @@ class AuthController extends Controller
 
         return response([
             'message' => 'User updated.',
+            'user' => auth()->user()
+        ], 200);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $attrs = $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        auth()->user()->update([
+            'password' => bcrypt($attrs['password']),
+        ]);
+
+        return response([
+            'message' => 'User Password updated.',
             'user' => auth()->user()
         ], 200);
     }

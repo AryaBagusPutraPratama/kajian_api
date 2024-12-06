@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\KajianModel;
+use App\Models\Kajian;
+use App\Models\KehadiranModel;
 use Illuminate\Http\Request;
 
 class KajianController extends Controller
@@ -11,57 +12,101 @@ class KajianController extends Controller
     public function index()
     {
         return response([
-            'kajian' => KajianModel::all()
+            'kajian' => Kajian::all()
         ], 200);
     }
+
+    public function kajianToday()
+    {
+        // Get the current date
+        $currentDate = now()->toDateString(); // Formats to 'YYYY-MM-DD'
+
+        // Find the Kajian with the current date
+        $kajian = Kajian::whereDate('date', $currentDate)->get();
+
+        if (!$kajian) {
+            return response([
+                'message' => 'No kajian found.'
+            ], 404);
+        }
+
+        return response([
+            'kajian' => $kajian
+        ], 200);
+    }
+
+    public function kajianLast()
+    {
+        $kajians = Kajian::latest()->take(2)->get(); // Ambil 2 entri terakhir
+
+        if ($kajians->isEmpty()) {
+            return response([
+                'message' => 'No kajian found.'
+            ], 404);
+        }
+
+        return response([
+            'kajian' => $kajians
+        ], 200);
+    }
+
 
     // get single post
     public function show($id)
     {
         return response([
-            'kajian' => KajianModel::where('kajian_id', $id)->get()
+            'kajian' => Kajian::where('id', $id)->get()
         ], 200);
     }
 
     // create a post
     public function store(Request $request)
     {
-        //validate fields
+        // Validate fields
         $attrs = $request->validate([
             'title' => 'required|string',
             'speaker_name' => 'required|string',
             'theme' => 'required|string',
+            'price' => 'required|string',
             'date' => 'required|date',
             'location' => 'required|string',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
         ]);
 
+        // Save the image
         $image = $this->saveImage($request->image, 'kajian');
 
-        $kajian = KajianModel::create([
+        // Create the Kajian
+        $kajian = Kajian::create([
             'title' => $attrs['title'],
             'speaker_name' => $attrs['speaker_name'],
             'theme' => $attrs['theme'],
             'date' => $attrs['date'],
+            'price' => intval($attrs['price']),
             'location' => $attrs['location'],
             'start_time' => $attrs['start_time'],
             'end_time' => $attrs['end_time'],
             'image' => $image
         ]);
 
-        // for now skip for post image
+        // $kehadiran = KehadiranModel::create([
+        //     'kajian_id' => $kajian->id,
+        // ]);
 
+        // Return response
         return response([
             'message' => 'Kajian created.',
             'kajian' => $kajian,
+            // 'kehadiran' => $kehadiran,
         ], 200);
     }
+
 
     // update a post
     public function update(Request $request, $id)
     {
-        $kajian = KajianModel::find($id);
+        $kajian = Kajian::find($id);
 
         if (!$kajian) {
             return response([
@@ -101,7 +146,7 @@ class KajianController extends Controller
     //delete post
     public function destroy($id)
     {
-        $kajian = KajianModel::find($id);
+        $kajian = Kajian::find($id);
 
         if (!$kajian) {
             return response([
@@ -124,13 +169,13 @@ class KajianController extends Controller
 
     // public function index()
     // {
-    //     $data = KajianModel::all();
+    //     $data = Kajian::all();
     //     return $data;
     // }
 
     // public function store(Request $request)
     // {
-    //     $save = new KajianModel();
+    //     $save = new Kajian();
     //     $save->image = $request->image;
     //     $save->title = $request->title;
     //     $save->speaker_name = $request->speaker_name;
@@ -146,13 +191,13 @@ class KajianController extends Controller
 
     // public function show(Request $request)
     // {
-    //     $data = KajianModel::all()->where('kajian_id', $request->kajian_id)->first();
+    //     $data = Kajian::all()->where('kajian_id', $request->kajian_id)->first();
     //     return $data;
     // }
 
     // public function update(Request $request)
     // {
-    //     $data = KajianModel::all()->where('kajian_id', $request->kajian_id)->first();
+    //     $data = Kajian::all()->where('kajian_id', $request->kajian_id)->first();
     //     $data->image = $request->image;
     //     $data->title = $request->title;
     //     $data->speaker_name = $request->speaker_name;
