@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatatanController;
 use App\Http\Controllers\TiketController;
 use App\Http\Controllers\KajianController;
+use App\Http\Controllers\UploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +57,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::put('/catatan/{id}', [CatatanController::class, 'update']); // update post
     Route::delete('/catatan/{id}', [CatatanController::class, 'destroy']); // delete post
 });
+
+Route::post('/upload', [UploadController::class, 'store']);
 
 // // Kajian
 // Route::post("kajian", [KajianController::class, "index"]);
